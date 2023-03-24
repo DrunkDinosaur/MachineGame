@@ -108,10 +108,7 @@ void AMachineGamePlayerController::OnSelectClick()
 	if(bHitSuccessful)
 	{
 		AddToSelectedCharacters(Hit.GetActor());
-		
 	}
-	
-
 }
 
 void AMachineGamePlayerController::OnHoldShift()

@@ -1,24 +1,23 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Templates/SubclassOf.h"
+#include "NiagaraSystem.h"
 #include "GameFramework/PlayerController.h"
-#include "InputActionValue.h"
-#include "MachineGameCharacter.h"
-#include "MachineGamePlayerController.generated.h"
+#include "TacticalController.generated.h"
 
-/** Forward declaration to improve compiling times */
-class UNiagaraSystem;
-
+class AMachineGameCharacter;
+/**
+ * 
+ */
 UCLASS()
-class AMachineGamePlayerController : public APlayerController
+class MACHINEGAME_API ATacticalController : public APlayerController
 {
 	GENERATED_BODY()
-
+	
 public:
-	AMachineGamePlayerController();
+	ATacticalController();
 
 	bool bShiftPressed = false;
 
@@ -45,8 +44,13 @@ public:
 	/** Hold Shift */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* HoldShiftAction;
+	
+	/** Camera Controls */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	class UInputAction* CameraRightAction;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	class UInputAction* CameraUpAction;
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
@@ -57,15 +61,16 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay() override;
 
-	/** Input handlers for SetDestination action. */
+	/** Input handlers */
 	void OnInputStarted();
 	void OnSetDestinationTriggered();
 	void OnSetDestinationReleased();
-
 	void OnSelectClick();
 	void OnHoldShift();
 	void OnReleaseShift();
 
+	void OnCameraRight();
+	void OnCameraUp();
 	
 	void AddToSelectedCharacters(AActor* SelectedActorPtr);
 	
@@ -76,5 +81,3 @@ private:
 	TSet<AMachineGameCharacter*> SelectedCharacters;
 	
 };
-
-
