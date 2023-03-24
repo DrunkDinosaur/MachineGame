@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TacticalController.generated.h"
 
+struct FInputActionValue;
 class AMachineGameCharacter;
 /**
  * 
@@ -24,6 +25,10 @@ public:
 	/** Time Threshold to know if it was a short press */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	float ShortPressThreshold;
+	
+	/** Time Threshold to know if it was a short press */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	float CameraPanSense;
 
 	/** FX Class that we will spawn when clicking */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -51,7 +56,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* CameraUpAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	class UInputAction* CameraZoomAction;
 
+
+	virtual void Tick(float DeltaTime) override;
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
@@ -69,8 +79,9 @@ protected:
 	void OnHoldShift();
 	void OnReleaseShift();
 
-	void OnCameraRight();
-	void OnCameraUp();
+	void OnCameraRight(const FInputActionValue & Value);
+	void OnCameraUp(const FInputActionValue & Value);
+	void OnCameraZoom(const FInputActionValue & Value);
 	
 	void AddToSelectedCharacters(AActor* SelectedActorPtr);
 	
@@ -79,5 +90,8 @@ private:
 	FVector CachedDestination;
 	float FollowTime; // For how long it has been pressed
 	TSet<AMachineGameCharacter*> SelectedCharacters;
+	void PanCamera(float AxisValue, bool bOrthogonal, bool zeroZ) const;
 	
 };
+
+

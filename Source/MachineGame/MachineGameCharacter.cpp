@@ -48,7 +48,4 @@ AMachineGameCharacter::AMachineGameCharacter()
 void AMachineGameCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-	FVector Velovity = GetVelocity();
-	FVector CurrentLocation = GetActorLocation();
-	UE_LOG(LogTemp, Warning, TEXT("location: %d, %d"), CurrentLocation.X, CurrentLocation.Y);
 }

@@ -12,6 +12,9 @@
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "TacticalCameraPawn.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Camera/CameraComponent.h"
 
 ATacticalController::ATacticalController()
 {
@@ -19,6 +22,7 @@ ATacticalController::ATacticalController()
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
 	FollowTime = 0.f;
+	CameraPanSense = 25.f;
 }
 
 void ATacticalController::BeginPlay()
@@ -31,6 +35,12 @@ void ATacticalController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
+}
+
+void ATacticalController::Tick(float DeltaTime)
+{
+	//FVector2D mousePosition = UWidgetLayoutLibrary::GetMousePositionOnViewport(GetWorld());
+	//UE_LOG(LogTemp, Warning, TEXT("Mouse pos %d, %d"), mousePosition.X, mousePosition.Y);
 }
 
 void ATacticalController::SetupInputComponent()
@@ -54,7 +64,9 @@ void ATacticalController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(HoldShiftAction, ETriggerEvent::Completed, this, &ATacticalController::OnReleaseShift);
 
 		EnhancedInputComponent->BindAction(CameraRightAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraRight);
-		EnhancedInputComponent->BindAction(CameraUpAction, ETriggerEvent::Completed, this, &ATacticalController::OnCameraUp);
+		EnhancedInputComponent->BindAction(CameraUpAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraUp);
+		EnhancedInputComponent->BindAction(CameraZoomAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraZoom);
+		
 	}
 }
 
@@ -105,7 +117,7 @@ void ATacticalController::OnSetDestinationReleased()
 			UE_LOG(LogTemp, Warning, TEXT("SIMPLE MOVE"))
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(SelectedCharacter->GetController(), CachedDestination);
 		}
-//		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, CachedDestination);
+
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, CachedDestination, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
 	}
 
@@ -135,12 +147,26 @@ void ATacticalController::OnReleaseShift()
 	bShiftPressed = false;
 }
 
-void ATacticalController::OnCameraRight()
+void ATacticalController::OnCameraRight(const FInputActionValue & Value) 
 {
+	PanCamera(Value.Get<float>(), true, true );
 }
 
-void ATacticalController::OnCameraUp()
+void ATacticalController::OnCameraUp(const FInputActionValue& Value) 
 {
+	PanCamera(Value.Get<float>(), false, true );
+}
+
+void ATacticalController::OnCameraZoom(const FInputActionValue& Value)
+{
+	// if( ATacticalCameraPawn* RTSCameraPawn = Cast<ATacticalCameraPawn>(GetPawn()) )
+	// {
+	// 	float AxisValue = Value.Get<float>();
+	// 	FVector OffsetVector = RTSCameraPawn->GetCameraComponent()->GetComponentRotation().Vector().GetSafeNormal();
+	// 	RTSCameraPawn->AddActorWorldOffset(OffsetVector*AxisValue*CameraPanSense);	
+	// }
+
+	PanCamera(Value.Get<float>(), false, false);
 }
 
 void ATacticalController::AddToSelectedCharacters(AActor* SelectedCharacterPtr) 
@@ -152,7 +178,7 @@ void ATacticalController::AddToSelectedCharacters(AActor* SelectedCharacterPtr)
 	
 	if (AMachineGameCharacter* IngameCharacterPtr = Cast<AMachineGameCharacter>(SelectedCharacterPtr))
 	{
-		UE_LOG(LogTemp, Display, TEXT( "Hit actor: %s" ), *IngameCharacterPtr->GetName() );
+		UE_LOG(LogTemp, Display, TEXT( "Hit actor: %s" ), *IngameCharacterPtr->GetName());
 		SelectedCharacters.Add(IngameCharacterPtr);
 	}
 	else if(!bShiftPressed){
@@ -160,4 +186,25 @@ void ATacticalController::AddToSelectedCharacters(AActor* SelectedCharacterPtr)
 	}
 
 	UE_LOG(LogTemp, Display, TEXT( "Selected actors count: %i" ), SelectedCharacters.Num() );
+}
+
+void ATacticalController::PanCamera(float AxisValue, bool bOrthogonal, bool zeroZ) const
+{
+	//UE_LOG(LogTemp, Display, TEXT( "PanCameraXY" ));
+	if(ATacticalCameraPawn* RTSCameraPawn = Cast<ATacticalCameraPawn>(GetPawn()))
+	{
+		FVector OffsetVector = RTSCameraPawn->GetCameraComponent()->GetComponentRotation().Vector().GetSafeNormal();
+		
+		if(zeroZ)
+		{
+			OffsetVector.Z = 0;
+		}
+		
+		if(bOrthogonal)
+		{
+			OffsetVector = FVector(OffsetVector.Y,OffsetVector.X,OffsetVector.Z) ;
+		}
+		
+		RTSCameraPawn->AddActorWorldOffset(OffsetVector*AxisValue*CameraPanSense);	
+	}
 }

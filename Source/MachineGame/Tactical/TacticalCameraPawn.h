@@ -6,6 +6,8 @@
 #include "GameFramework/Pawn.h"
 #include "TacticalCameraPawn.generated.h"
 
+class UCameraComponent;
+
 UCLASS()
 class MACHINEGAME_API ATacticalCameraPawn : public APawn
 {
@@ -26,10 +28,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	FORCEINLINE UCameraComponent* GetCameraComponent() const { return Camera; }
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"));
 	class USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"));
-	class UCameraComponent* Camera;
+	UCameraComponent* Camera;
 };
