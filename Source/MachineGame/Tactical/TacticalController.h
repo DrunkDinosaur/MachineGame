@@ -60,6 +60,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* CameraZoomAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	class UInputAction* CameraRotationAction;
+
 
 	virtual void Tick(float DeltaTime) override;
 protected:
@@ -82,6 +85,7 @@ protected:
 	void OnCameraRight(const FInputActionValue & Value);
 	void OnCameraUp(const FInputActionValue & Value);
 	void OnCameraZoom(const FInputActionValue & Value);
+	void OnCameraRotate(const FInputActionValue & Value);
 	
 	void AddToSelectedCharacters(AActor* SelectedActorPtr);
 	

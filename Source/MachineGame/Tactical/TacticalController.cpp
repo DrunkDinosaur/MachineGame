@@ -66,6 +66,7 @@ void ATacticalController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(CameraRightAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraRight);
 		EnhancedInputComponent->BindAction(CameraUpAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraUp);
 		EnhancedInputComponent->BindAction(CameraZoomAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraZoom);
+		EnhancedInputComponent->BindAction(CameraRotationAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraRotate);
 		
 	}
 }
@@ -159,14 +160,21 @@ void ATacticalController::OnCameraUp(const FInputActionValue& Value)
 
 void ATacticalController::OnCameraZoom(const FInputActionValue& Value)
 {
-	// if( ATacticalCameraPawn* RTSCameraPawn = Cast<ATacticalCameraPawn>(GetPawn()) )
-	// {
-	// 	float AxisValue = Value.Get<float>();
-	// 	FVector OffsetVector = RTSCameraPawn->GetCameraComponent()->GetComponentRotation().Vector().GetSafeNormal();
-	// 	RTSCameraPawn->AddActorWorldOffset(OffsetVector*AxisValue*CameraPanSense);	
-	// }
-
 	PanCamera(Value.Get<float>(), false, false);
+}
+
+void ATacticalController::OnCameraRotate(const FInputActionValue& Value)
+{
+	float AxisValue = Value.Get<float>();
+	if(ATacticalCameraPawn* RTSCameraPawn = Cast<ATacticalCameraPawn>(GetPawn()))
+	{
+		FRotator RotationOffset = RTSCameraPawn->GetCameraComponent()->GetComponentRotation();
+		RotationOffset.Yaw = AxisValue;
+		RotationOffset.Pitch = 0.0;
+		RotationOffset.Roll = 0.0;
+		RTSCameraPawn->AddActorWorldRotation(RotationOffset);
+		//RTSCameraPawn->AddActorWorldOffset(OffsetVector*AxisValue*CameraPanSense);	
+	}
 }
 
 void ATacticalController::AddToSelectedCharacters(AActor* SelectedCharacterPtr) 
