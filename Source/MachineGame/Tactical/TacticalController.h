@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "NiagaraSystem.h"
 #include "GameFramework/PlayerController.h"
+
 #include "TacticalController.generated.h"
+ 
 
 struct FInputActionValue;
 class AMachineGameCharacter;
@@ -63,8 +65,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* CameraRotationAction;
 
-
 	virtual void Tick(float DeltaTime) override;
+	
+	void SetSelectedCharacters(TArray<AMachineGameCharacter*> SelectedChars);
+	
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
@@ -78,7 +82,8 @@ protected:
 	void OnInputStarted();
 	void OnSetDestinationTriggered();
 	void OnSetDestinationReleased();
-	void OnSelectClick();
+	void OnSelectClicked();
+	void OnSelectDrag();
 	void OnHoldShift();
 	void OnReleaseShift();
 
@@ -88,6 +93,7 @@ protected:
 	void OnCameraRotate(const FInputActionValue & Value);
 	
 	void AddToSelectedCharacters(AActor* SelectedActorPtr);
+
 	
 
 private:
@@ -95,7 +101,7 @@ private:
 	float FollowTime; // For how long it has been pressed
 	TSet<AMachineGameCharacter*> SelectedCharacters;
 	void PanCamera(float AxisValue, bool bOrthogonal, bool zeroZ) const;
-	
+	void TrackMouseOnViewPort();
 };
 
 
