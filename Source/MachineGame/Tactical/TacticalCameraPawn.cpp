@@ -16,22 +16,19 @@ ATacticalCameraPawn::ATacticalCameraPawn()
 
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(SpringArm);
+	
+	CameraPanSense = 25.f;
+	MouseHoldDelay = 0.1f;
 }
 
 void ATacticalCameraPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	CameraPanSense = 25.f;
 }
 
 void ATacticalCameraPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void ATacticalCameraPawn::OnTestAction()
-{
-	UE_LOG(LogTemp, Warning, TEXT("TEST PAWN CAMERA ACTION"));
 }
 
 void ATacticalCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -43,16 +40,18 @@ void ATacticalCameraPawn::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		EnhancedInputComponent->BindAction(CameraUpAction, ETriggerEvent::Triggered, this, &ATacticalCameraPawn::OnCameraUp);
 		EnhancedInputComponent->BindAction(CameraZoomAction, ETriggerEvent::Triggered, this, &ATacticalCameraPawn::OnCameraZoom);
 		EnhancedInputComponent->BindAction(CameraRotationAction, ETriggerEvent::Triggered, this, &ATacticalCameraPawn::OnCameraRotate);
+
+		EnhancedInputComponent->BindAction(MouseCameraRotationAction, ETriggerEvent::Triggered, this, &ATacticalCameraPawn::OnMouseCameraRotate);
+		EnhancedInputComponent->BindAction(EnableMouseCameraRotationAction, ETriggerEvent::Triggered, this, &ATacticalCameraPawn::EnableCameraRotate);
+		EnhancedInputComponent->BindAction(EnableMouseCameraRotationAction, ETriggerEvent::Completed, this, &ATacticalCameraPawn::DisableCameraRotate);
 	}
 }
 
-void ATacticalCameraPawn::RotateCamera(float Yaw, float Pitch)
+void ATacticalCameraPawn::RotateCamera(const float Yaw, const float Pitch)
 {
-	FRotator RotationOffset = GetCameraComponent()->GetComponentRotation();
-	RotationOffset.Yaw = Yaw;
-	RotationOffset.Pitch = Pitch;
-	RotationOffset.Roll = 0.0;
-	AddActorWorldRotation(RotationOffset);
+	const FRotator CurrentRotation = GetActorRotation();
+	const FRotator DeltaRotation = FRotator(Pitch, Yaw, 0);
+	SetActorRotation(CurrentRotation - DeltaRotation);
 }
 
 void ATacticalCameraPawn::PanCamera(float AxisValue, bool bOrthogonal, bool zeroZ)
@@ -75,7 +74,7 @@ void ATacticalCameraPawn::PanCamera(float AxisValue, bool bOrthogonal, bool zero
 
 void ATacticalCameraPawn::OnCameraRight(const FInputActionValue & Value) 
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnCameraRight camera"));
+	//UE_LOG(LogTemp, Warning, TEXT("OnCameraRight camera"));
 	PanCamera(Value.Get<float>(), true, true );
 }
 
@@ -93,4 +92,31 @@ void ATacticalCameraPawn::OnCameraRotate(const FInputActionValue& Value)
 {
 	float AxisValue = Value.Get<float>();
 	RotateCamera(AxisValue, 0.0);
+}
+
+void ATacticalCameraPawn::OnMouseCameraRotate(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("ATacticalCameraPawn::OnMouseCameraRotate"));
+	if(bRotateOnMouseInput)
+	{
+		FVector2d AxisVector = Value.Get<FVector2d>();
+		UE_LOG(LogTemp, Warning, TEXT("MouseRotVec: %d, %d"), AxisVector.X, AxisVector.Y);
+		RotateCamera(AxisVector.X, AxisVector.Y);
+	}
+}
+
+void ATacticalCameraPawn::EnableCameraRotate()
+{
+	MouseRotHoldTime += GetWorld()->GetDeltaSeconds();
+
+	if(MouseRotHoldTime > MouseHoldDelay)
+	{
+		bRotateOnMouseInput = true;
+	}
+}
+
+void ATacticalCameraPawn::DisableCameraRotate()
+{
+	bRotateOnMouseInput = false;
+	MouseRotHoldTime = 0.f;
 }

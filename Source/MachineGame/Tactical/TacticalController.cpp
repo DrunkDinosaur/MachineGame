@@ -118,25 +118,25 @@ void ATacticalController::OnInputStarted()
 // Triggered every frame when the input is held down
 void ATacticalController::OnSetDestinationTriggered()
 {
-	HoldDelay += GetWorld()->GetDeltaSeconds();
+	 HoldDelay += GetWorld()->GetDeltaSeconds();
 	
-	FHitResult Hit;
-	bool bHitSuccessful = false;
-	bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-
-	if (bHitSuccessful)
-	{
-		CachedDestination = Hit.Location;
-	}
-
-	for(AMachineGameCharacter* ControlledPawn : SelectedCharacters)
-	{
-		if (ControlledPawn != nullptr)
-		{
-			FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
-			ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
-		}
-	}
+	 FHitResult Hit;
+	 bool bHitSuccessful = false;
+	 bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
+	
+	 if (bHitSuccessful)
+	 {
+	 	CachedDestination = Hit.Location;
+	 }
+	//
+	// for(AMachineGameCharacter* ControlledPawn : SelectedCharacters)
+	// {
+	// 	if (ControlledPawn != nullptr)
+	// 	{
+	// 		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+	// 		ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
+	// 	}
+	// }
 }
 
 void ATacticalController::OnSetDestinationReleased()
