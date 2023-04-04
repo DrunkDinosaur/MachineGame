@@ -18,7 +18,9 @@ ATacticalCameraPawn::ATacticalCameraPawn()
 	Camera->SetupAttachment(SpringArm);
 	
 	CameraPanSense = 25.f;
+	CameraRotationSens = 3.f;
 	MouseHoldDelay = 0.1f;
+	bEnableMousePan = true;
 }
 
 void ATacticalCameraPawn::BeginPlay()
@@ -51,7 +53,14 @@ void ATacticalCameraPawn::RotateCamera(const float Yaw, const float Pitch)
 {
 	const FRotator CurrentRotation = GetActorRotation();
 	const FRotator DeltaRotation = FRotator(Pitch, Yaw, 0);
-	SetActorRotation(CurrentRotation - DeltaRotation);
+	SetActorRotation(CurrentRotation - DeltaRotation*CameraRotationSens);
+}
+
+void ATacticalCameraPawn::PanCameraMouse(float AxisValue, bool bOrthogonal, bool zeroZ)
+{
+	if(bEnableMousePan){
+		PanCamera(AxisValue, bOrthogonal, zeroZ);
+	}
 }
 
 void ATacticalCameraPawn::PanCamera(float AxisValue, bool bOrthogonal, bool zeroZ)
@@ -74,7 +83,6 @@ void ATacticalCameraPawn::PanCamera(float AxisValue, bool bOrthogonal, bool zero
 
 void ATacticalCameraPawn::OnCameraRight(const FInputActionValue & Value) 
 {
-	//UE_LOG(LogTemp, Warning, TEXT("OnCameraRight camera"));
 	PanCamera(Value.Get<float>(), true, true );
 }
 
@@ -96,11 +104,9 @@ void ATacticalCameraPawn::OnCameraRotate(const FInputActionValue& Value)
 
 void ATacticalCameraPawn::OnMouseCameraRotate(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ATacticalCameraPawn::OnMouseCameraRotate"));
 	if(bRotateOnMouseInput)
 	{
 		FVector2d AxisVector = Value.Get<FVector2d>();
-		UE_LOG(LogTemp, Warning, TEXT("MouseRotVec: %d, %d"), AxisVector.X, AxisVector.Y);
 		RotateCamera(AxisVector.X, AxisVector.Y);
 	}
 }

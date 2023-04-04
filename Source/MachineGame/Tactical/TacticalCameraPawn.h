@@ -26,8 +26,14 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CameraSettings)
 	float CameraPanSense;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CameraSettings)
+	float CameraRotationSens;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CameraSettings)
+	bool bEnableMousePan;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	float MouseHoldDelay;
@@ -60,6 +66,7 @@ public:
 	void DisableCameraRotate();
 	
 	void RotateCamera(float Yaw, float Pitch);
+	void PanCameraMouse(float AxisValue, bool bOrthogonal, bool zeroZ);
 	void PanCamera(float AxisValue, bool bOrthogonal, bool zeroZ);
 	
 	FORCEINLINE UCameraComponent* GetCameraComponent() const { return Camera; }
