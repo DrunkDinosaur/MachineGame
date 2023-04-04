@@ -7,8 +7,9 @@
 #include "GameFramework/PlayerController.h"
 
 #include "TacticalController.generated.h"
- 
 
+
+class ATacticalCameraPawn;
 struct FInputActionValue;
 class AMachineGameCharacter;
 /**
@@ -28,9 +29,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	float ShortPressThreshold;
 	
-	/** Time Threshold to know if it was a short press */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	float CameraPanSense;
+	
 
 	/** FX Class that we will spawn when clicking */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -52,33 +51,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* HoldShiftAction;
 	
-	/** Camera Controls */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* CameraRightAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* CameraUpAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* CameraZoomAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* CameraRotationAction;
 
 	virtual void Tick(float DeltaTime) override;
 	
 	void SetSelectedCharacters(TArray<AMachineGameCharacter*> SelectedChars);
 	
 protected:
-	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
 
 	virtual void SetupInputComponent() override;
 	
-	// To add mapping context
 	virtual void BeginPlay() override;
 
-	/** Input handlers */
 	void OnInputStarted();
 	void OnSetDestinationTriggered();
 	void OnSetDestinationReleased();
@@ -87,10 +72,6 @@ protected:
 	void OnHoldShift();
 	void OnReleaseShift();
 
-	void OnCameraRight(const FInputActionValue & Value);
-	void OnCameraUp(const FInputActionValue & Value);
-	void OnCameraZoom(const FInputActionValue & Value);
-	void OnCameraRotate(const FInputActionValue & Value);
 	
 	void AddToSelectedCharacters(AActor* SelectedActorPtr);
 
@@ -98,10 +79,10 @@ protected:
 
 private:
 	FVector CachedDestination;
-	float FollowTime; // For how long it has been pressed
+	float HoldDelay; // For how long it has been pressed
 	TSet<AMachineGameCharacter*> SelectedCharacters;
-	void PanCamera(float AxisValue, bool bOrthogonal, bool zeroZ) const;
 	void TrackMouseOnViewPort();
+	ATacticalCameraPawn* TacticalCamera;
 };
 
 

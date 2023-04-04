@@ -17,13 +17,14 @@
 #include "Camera/CameraComponent.h"
 #include "BoxSelectionHUD.h"
 
+#include "TacticalCameraPawn.h"
+
 ATacticalController::ATacticalController()
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
-	FollowTime = 0.f;
-	CameraPanSense = 25.f;
+	HoldDelay = 0.f;
 }
 
 void ATacticalController::BeginPlay()
@@ -35,6 +36,11 @@ void ATacticalController::BeginPlay()
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+	}
+	TacticalCamera = Cast<ATacticalCameraPawn>(GetPawn());
+	if(!TacticalCamera)
+	{
+		UE_LOG(LogTemp, Error, TEXT("TACTICAL CAMERA CAST FAILED"));
 	}
 }
 
@@ -59,22 +65,22 @@ void ATacticalController::TrackMouseOnViewPort()
 	if(MousePositionNormalizedX < 0.10)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("MoveLeft"));
-		PanCamera(-1.0, true, true );
+		TacticalCamera->PanCamera(-1.0, true, true );
 	}
 	if(MousePositionNormalizedX > 0.90)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("MoveRight"));
-		PanCamera(1.0, true, true );
+		TacticalCamera->PanCamera(1.0, true, true );
 	}
 	if(MousePositionNormalizedY > 0.90)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("MoveUp"));
-		PanCamera(-1.0, false, true );
+		TacticalCamera->PanCamera(-1.0, false, true );
 	}
 	if(MousePositionNormalizedY < 0.10)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("MoveDown"));
-		PanCamera(1.0, false, true );
+		TacticalCamera->PanCamera(1.0, false, true );
 	}
 	
 }
@@ -87,7 +93,6 @@ void ATacticalController::SetupInputComponent()
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
-		// Setup mouse input events
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Started, this, &ATacticalController::OnInputStarted);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &ATacticalController::OnSetDestinationTriggered);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &ATacticalController::OnSetDestinationReleased);
@@ -101,14 +106,9 @@ void ATacticalController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(HoldShiftAction, ETriggerEvent::Triggered, this, &ATacticalController::OnHoldShift);
 		EnhancedInputComponent->BindAction(HoldShiftAction, ETriggerEvent::Completed, this, &ATacticalController::OnReleaseShift);
 
-		EnhancedInputComponent->BindAction(CameraRightAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraRight);
-		EnhancedInputComponent->BindAction(CameraUpAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraUp);
-		EnhancedInputComponent->BindAction(CameraZoomAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraZoom);
-		EnhancedInputComponent->BindAction(CameraRotationAction, ETriggerEvent::Triggered, this, &ATacticalController::OnCameraRotate);
+
 	}
 }
-
-
 
 void ATacticalController::OnInputStarted()
 {
@@ -118,21 +118,17 @@ void ATacticalController::OnInputStarted()
 // Triggered every frame when the input is held down
 void ATacticalController::OnSetDestinationTriggered()
 {
-	// We flag that the input is being pressed
-	FollowTime += GetWorld()->GetDeltaSeconds();
+	HoldDelay += GetWorld()->GetDeltaSeconds();
 	
-	// We look for the location in the world where the player has pressed the input
 	FHitResult Hit;
 	bool bHitSuccessful = false;
 	bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-	
-	// If we hit a surface, cache the location
+
 	if (bHitSuccessful)
 	{
 		CachedDestination = Hit.Location;
 	}
-	
-	// Move towards mouse pointer or touch
+
 	for(AMachineGameCharacter* ControlledPawn : SelectedCharacters)
 	{
 		if (ControlledPawn != nullptr)
@@ -145,11 +141,8 @@ void ATacticalController::OnSetDestinationTriggered()
 
 void ATacticalController::OnSetDestinationReleased()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("ATacticalController::OnSetDestinationReleased()"))
-	// If it was a short press
-	if (FollowTime <= ShortPressThreshold)
+	if (HoldDelay <= ShortPressThreshold)
 	{
-		// We move there and spawn some particles
 		for(AMachineGameCharacter* SelectedCharacter : SelectedCharacters)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("SIMPLE MOVE"))
@@ -159,15 +152,12 @@ void ATacticalController::OnSetDestinationReleased()
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, CachedDestination, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
 	}
 
-	FollowTime = 0.f;
+	HoldDelay = 0.f;
 }
 
 void ATacticalController::OnSelectClicked()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("AMachineGamePlayerController::OnSelectClick()"));
-	
-	//UE_LOG(LogTemp, Warning, TEXT("HUD_CLASS: %s"), *GetHUD()->GetActorNameOrLabel());
-	if (FollowTime <= ShortPressThreshold)
+	if (HoldDelay <= ShortPressThreshold)
 	{
 		FHitResult Hit;
 		bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_WorldStatic, true, Hit);
@@ -177,22 +167,18 @@ void ATacticalController::OnSelectClicked()
 			AddToSelectedCharacters(Hit.GetActor());
 		}
 	}
-	else
-	{
-		
-	}
+	
 	if(ABoxSelectionHUD* Hud = Cast<ABoxSelectionHUD>(GetHUD()))
 	{
 		Hud->StopDrawing();
 	}
 
-	FollowTime = 0.0;
+	HoldDelay = 0.0;
 }
 
 void ATacticalController::OnSelectDrag()
 {
-	// We flag that the input is being pressed
-	FollowTime += GetWorld()->GetDeltaSeconds();
+	HoldDelay += GetWorld()->GetDeltaSeconds();
 	UE_LOG(LogTemp, Warning, TEXT("AMachineGamePlayerController::OnSelectDrag()"));
 	if(ABoxSelectionHUD* Hud = Cast<ABoxSelectionHUD>(GetHUD()))
 	{
@@ -212,35 +198,6 @@ void ATacticalController::OnHoldShift()
 void ATacticalController::OnReleaseShift()
 {
 	bShiftPressed = false;
-}
-
-void ATacticalController::OnCameraRight(const FInputActionValue & Value) 
-{
-	PanCamera(Value.Get<float>(), true, true );
-}
-
-void ATacticalController::OnCameraUp(const FInputActionValue& Value) 
-{
-	PanCamera(Value.Get<float>(), false, true );
-}
-
-void ATacticalController::OnCameraZoom(const FInputActionValue& Value)
-{
-	PanCamera(Value.Get<float>(), false, false);
-}
-
-void ATacticalController::OnCameraRotate(const FInputActionValue& Value)
-{
-	float AxisValue = Value.Get<float>();
-	if(ATacticalCameraPawn* RTSCameraPawn = Cast<ATacticalCameraPawn>(GetPawn()))
-	{
-		FRotator RotationOffset = RTSCameraPawn->GetCameraComponent()->GetComponentRotation();
-		RotationOffset.Yaw = AxisValue;
-		RotationOffset.Pitch = 0.0;
-		RotationOffset.Roll = 0.0;
-		RTSCameraPawn->AddActorWorldRotation(RotationOffset);
-		//RTSCameraPawn->AddActorWorldOffset(OffsetVector*AxisValue*CameraPanSense);	
-	}
 }
 
 void ATacticalController::AddToSelectedCharacters(AActor* SelectedCharacterPtr) 
@@ -270,23 +227,3 @@ void ATacticalController::SetSelectedCharacters(TArray<AMachineGameCharacter*> S
 	}
 }
 
-void ATacticalController::PanCamera(float AxisValue, bool bOrthogonal, bool zeroZ) const
-{
-	//UE_LOG(LogTemp, Display, TEXT( "PanCameraXY" ));
-	if(ATacticalCameraPawn* RTSCameraPawn = Cast<ATacticalCameraPawn>(GetPawn()))
-	{
-		FVector OffsetVector = RTSCameraPawn->GetCameraComponent()->GetComponentRotation().Vector().GetSafeNormal();
-		
-		if(zeroZ)
-		{
-			OffsetVector.Z = 0;
-		}
-		
-		if(bOrthogonal)
-		{
-			OffsetVector = FVector(-1* OffsetVector.Y,OffsetVector.X,OffsetVector.Z) ;			
-		}
-		
-		RTSCameraPawn->AddActorWorldOffset(OffsetVector*AxisValue*CameraPanSense);	
-	}
-}
