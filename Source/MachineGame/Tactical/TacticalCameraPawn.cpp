@@ -107,6 +107,7 @@ void ATacticalCameraPawn::OnMouseCameraRotate(const FInputActionValue& Value)
 	if(bRotateOnMouseInput)
 	{
 		FVector2d AxisVector = Value.Get<FVector2d>();
+		UE_LOG(LogTemp, Warning, TEXT("MouseCameraRotate: %x, %y"), AxisVector.X, AxisVector.Y);
 		RotateCamera(AxisVector.X, AxisVector.Y);
 	}
 }

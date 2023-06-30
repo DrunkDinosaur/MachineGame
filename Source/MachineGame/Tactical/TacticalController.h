@@ -77,4 +77,6 @@ private:
 	TSet<AMachineGameCharacter*> SelectedCharacters;
 	void TrackMouseOnViewPort();
 	ATacticalCameraPawn* TacticalCamera;
+	void SelectCharacter(AMachineGameCharacter* IngameCharacterPtr);
+	void ClearSelection();
 };

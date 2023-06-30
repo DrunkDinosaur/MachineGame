@@ -85,6 +85,22 @@ void ATacticalController::TrackMouseOnViewPort()
 	
 }
 
+void ATacticalController::SelectCharacter(AMachineGameCharacter* IngameCharacterPtr)
+{
+	SelectedCharacters.Add(IngameCharacterPtr);
+	IngameCharacterPtr->Select();
+}
+
+void ATacticalController::ClearSelection()
+{
+	for(AMachineGameCharacter* SelectedCharacter: SelectedCharacters)
+	{
+		SelectedCharacter->Deselect();
+	}
+	SelectedCharacters.Empty();
+}
+
+
 void ATacticalController::SetupInputComponent()
 {
 	// set up gameplay key bindings
@@ -204,16 +220,15 @@ void ATacticalController::AddToSelectedCharacters(AActor* SelectedCharacterPtr)
 {
 	if(!bShiftPressed)
 	{
-		SelectedCharacters.Empty();	
+		ClearSelection();	
 	}
 	
 	if (AMachineGameCharacter* IngameCharacterPtr = Cast<AMachineGameCharacter>(SelectedCharacterPtr))
 	{
 		UE_LOG(LogTemp, Display, TEXT( "Hit actor: %s" ), *IngameCharacterPtr->GetName());
-		SelectedCharacters.Add(IngameCharacterPtr);
-	}
-	else if(!bShiftPressed){
-		SelectedCharacters.Empty();
+		SelectCharacter(IngameCharacterPtr);
+		//SelectedCharacters.Add(IngameCharacterPtr);
+		//IngameCharacterPtr->Select();
 	}
 
 	UE_LOG(LogTemp, Display, TEXT( "Selected actors count: %i" ), SelectedCharacters.Num() );
@@ -223,7 +238,9 @@ void ATacticalController::SetSelectedCharacters(TArray<AMachineGameCharacter*> S
 {
 	for(AMachineGameCharacter* Char : SelectedChars)
 	{
+		SelectCharacter(Char);
 		SelectedCharacters.Add(Char);
+		Char->Select();
 	}
 }
 

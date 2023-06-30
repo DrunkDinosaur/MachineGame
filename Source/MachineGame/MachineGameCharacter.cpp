@@ -49,3 +49,20 @@ void AMachineGameCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 }
+
+void AMachineGameCharacter::Select()
+{
+	bIsSelected = true;
+	OnSelection();
+}
+
+void AMachineGameCharacter::Deselect()
+{
+	bIsSelected = false;
+	OnSelection();
+}
+
+bool AMachineGameCharacter::IsUnitSelected()
+{
+	return bIsSelected;
+}
