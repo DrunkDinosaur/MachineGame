@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "TacticalGameMode.generated.h"
 
+class UCoverSystem;
 /**
  * 
  */
@@ -16,4 +17,11 @@ class MACHINEGAME_API ATacticalGameMode : public AGameModeBase
 
 public:
 	ATacticalGameMode();
+
+private:
+	UCoverSystem* CoverSystem;
+
+public:
+	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 };

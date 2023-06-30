@@ -17,6 +17,7 @@ UCoverSystem::UCoverSystem(){
 }
 
 void UCoverSystem::DrawNavMeshDebugLines(const int32 TileIndex){
+	UE_LOG(LogTemp, Warning, TEXT("DrawNavMeshDebugLines"));
 	const ARecastNavMesh* navdata = Cast<ARecastNavMesh>(UNavigationSystemV1::GetCurrent(GetWorld())->MainNavData);
 
 	FRecastDebugGeometry navGeo;

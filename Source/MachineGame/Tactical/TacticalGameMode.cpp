@@ -4,6 +4,7 @@
 #include "TacticalGameMode.h"
 
 #include "TacticalController.h"
+#include "MachineGame/SybSystems/CoverSystem/CoverSystem.h"
 
 ATacticalGameMode::ATacticalGameMode()
 {
@@ -23,4 +24,32 @@ ATacticalGameMode::ATacticalGameMode()
 	// {
 	// 	PlayerControllerClass = PlayerControllerBPClass.Class;
 	// }
+}
+
+void ATacticalGameMode::BeginPlay(){
+	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Warning, TEXT("GameModeGM BeginPlay"));
+	
+	CoverSystem = UCoverSystem::GetInstance(GetWorld());
+
+	if(CoverSystem){
+		UE_LOG(LogTemp, Display, TEXT("Cover system initialized"));
+	}
+	else{
+		UE_LOG(LogTemp, Error, TEXT("Cover system is NOT initialized"));
+	}
+
+	/*if(CoverSystem && CoverSystem->GetWorld()){
+		CoverSystem->GenerateNavMeshDebugLines();
+	}*/
+	
+}
+
+void ATacticalGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	//CoverSystem->bShutdown = true;
+	CoverSystem = nullptr;
 }
