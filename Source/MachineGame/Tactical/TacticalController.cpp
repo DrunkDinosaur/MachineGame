@@ -65,22 +65,22 @@ void ATacticalController::TrackMouseOnViewPort()
 	if(MousePositionNormalizedX < 0.10)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("MoveLeft"));
-		TacticalCamera->PanCamera(-1.0, true, true );
+		TacticalCamera->PanCameraMouse(-1.0, true, true );
 	}
 	if(MousePositionNormalizedX > 0.90)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("MoveRight"));
-		TacticalCamera->PanCamera(1.0, true, true );
+		TacticalCamera->PanCameraMouse(1.0, true, true );
 	}
 	if(MousePositionNormalizedY > 0.90)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("MoveUp"));
-		TacticalCamera->PanCamera(-1.0, false, true );
+		TacticalCamera->PanCameraMouse(-1.0, false, true );
 	}
 	if(MousePositionNormalizedY < 0.10)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("MoveDown"));
-		TacticalCamera->PanCamera(1.0, false, true );
+		TacticalCamera->PanCameraMouse(1.0, false, true );
 	}
 	
 }
