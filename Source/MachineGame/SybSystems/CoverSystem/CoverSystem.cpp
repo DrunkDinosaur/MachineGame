@@ -16,21 +16,29 @@ UCoverSystem::UCoverSystem(){
 	Singleton = nullptr;
 }
 
-void UCoverSystem::DrawNavMeshDebugLines(const int32 TileIndex){
-	UE_LOG(LogTemp, Warning, TEXT("DrawNavMeshDebugLines"));
-	const ARecastNavMesh* navdata = Cast<ARecastNavMesh>(UNavigationSystemV1::GetCurrent(GetWorld())->MainNavData);
+void UCoverSystem::DrawNavMeshDebugLines(const uint64 TileIndex){
+	UE_LOG(LogTemp, Warning, TEXT("DrawNavMeshDebugLines, TileIndex: %llu"), TileIndex);
+	ARecastNavMesh* navdata = Cast<ARecastNavMesh>(UNavigationSystemV1::GetCurrent(GetWorld())->MainNavData);
+
 
 	FRecastDebugGeometry navGeo;
 	navGeo.bGatherNavMeshEdges = true;
 
 	//I guess batchquery is needed for some multithreading reason, idk, I copied this code from the web
-	navdata->BeginBatchQuery();
-	navdata->GetDebugGeometry(navGeo, TileIndex);
-	navdata->FinishBatchQuery();
+	//navdata->BeginBatchQuery();
+	if(navdata)
+	{
+		navdata->GetDebugGeometryForTile(navGeo, INDEX_NONE);
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("No navdata"));
+	}
+	//navdata->FinishBatchQuery();
 
 	TArray<FVector>& vertices = navGeo.NavMeshEdges;
 
 	//draw debug edges
+	UE_LOG(LogTemp, Warning, TEXT(" vertices.Num() = %i"), vertices.Num());
 	if (vertices.Num() <= 1){
 		UE_LOG(LogTemp, Warning, TEXT(" <=1  verticies"));
 		return;
@@ -61,7 +69,7 @@ UCoverSystem::~UCoverSystem(){
 	Singleton = nullptr;
 }
 
-void UCoverSystem::OnNavMeshTilesUpdated(const TSet<uint32>& UpdatedTiles){
+void UCoverSystem::OnNavMeshTilesUpdated(const TSet<uint64>& UpdatedTiles){
 
 	UE_LOG(LogCoverSystem, Warning, TEXT("UCoverSystem::OnNavMeshTilesUpdated"));
 	
@@ -69,7 +77,7 @@ void UCoverSystem::OnNavMeshTilesUpdated(const TSet<uint32>& UpdatedTiles){
 		return;
 	}
 
-	for (uint32 TileIdx : UpdatedTiles){
+	for (uint64 TileIdx : UpdatedTiles){
 		DrawNavMeshDebugLines(TileIdx);
 
 	}

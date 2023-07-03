@@ -20,6 +20,7 @@ private:
 	UCoverSystem();
 
 	// Our custom navmesh
+	UPROPERTY()
 	AChangeNotifyingRecastNavMesh* Navmesh;
 	
 public:
@@ -30,11 +31,11 @@ public:
 		 */
 	static UCoverSystem* GetInstance(UWorld* World);
 	void OnBeginPlay();
-	void DrawNavMeshDebugLines(int32 TileIndex);
+	void DrawNavMeshDebugLines(uint64 TileIndex);
 
 	virtual ~UCoverSystem() override;
 
 	// Callback for navmesh tile updates.
 	UFUNCTION()
-	void OnNavMeshTilesUpdated(const TSet<uint32>& UpdatedTiles);
+	void OnNavMeshTilesUpdated(const TSet<uint64>& UpdatedTiles);
 };
