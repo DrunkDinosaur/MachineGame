@@ -75,8 +75,16 @@ private:
 	FVector CachedDestination;
 	float HoldDelay; // For how long it has been pressed
 	TSet<AMachineGameCharacter*> SelectedCharacters;
-	void TrackMouseOnViewPort();
+
+	UPROPERTY(EditAnywhere)
+    TSubclassOf<UUserWidget> TacticalHudWidgetClass;
+    
+    UPROPERTY(EditAnywhere)
+    UUserWidget* HudWidget; 
+	
 	ATacticalCameraPawn* TacticalCamera;
+	
+	void TrackMouseOnViewPort();
 	void SelectCharacter(AMachineGameCharacter* IngameCharacterPtr);
 	void ClearSelection();
 };

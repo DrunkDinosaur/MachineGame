@@ -18,6 +18,7 @@
 #include "BoxSelectionHUD.h"
 
 #include "TacticalCameraPawn.h"
+#include "Blueprint/UserWidget.h"
 
 ATacticalController::ATacticalController()
 {
@@ -41,6 +42,12 @@ void ATacticalController::BeginPlay()
 	if(!TacticalCamera)
 	{
 		UE_LOG(LogTemp, Error, TEXT("TACTICAL CAMERA CAST FAILED"));
+	}
+
+	HudWidget = CreateWidget(this, TacticalHudWidgetClass);
+	if(HudWidget)
+	{
+		HudWidget->AddToViewport();
 	}
 }
 
@@ -137,7 +144,7 @@ void ATacticalController::OnSetDestinationTriggered()
 	 HoldDelay += GetWorld()->GetDeltaSeconds();
 	
 	 FHitResult Hit;
-	 bool bHitSuccessful = false;
+	 bool bHitSuccessful;
 	 bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
 	
 	 if (bHitSuccessful)
